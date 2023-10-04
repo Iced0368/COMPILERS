@@ -16,43 +16,53 @@ char tokenString[MAXTOKENLEN+1];
 digit       [0-9]
 number      {digit}+
 letter      [a-zA-Z]
-identifier  {letter}+
+identifier  {letter}({letter}|{digit})*
 newline     \n
 whitespace  [ \t]+
-comment     \/\*[0-9a-zA-Z\n \t]*\*\/
-
 %%
 
-{comment}       {return COMMENT;}
+"/*"            { char c;
+                  do {
+                    c = input();
+                    if (!c || c == EOF) break;
+                    if (c == '\n') lineno++;
+                    if (c == '*') {
+                      c = input();
+                      if (!c || c == EOF) break;
+                      if (c == '\n') lineno++;
+                      if (c == '/') break;
+                    }
+                  } while(1);
+                }
 "if"            {return IF;}
-"then"          {return THEN;}
 "else"          {return ELSE;}
-"end"           {return END;}
-"repeat"        {return REPEAT;}
-"until"         {return UNTIL;}
-"read"          {return READ;}
-"write"         {return WRITE;}
-":="            {return ASSIGN;}
-"="             {return EQ;}
-"<"             {return LT;}
+"int"           {return INT;}
+"void"          {return VOID;}
+"while"         {return WHILE;}
+"return"        {return RETURN;}
 "+"             {return PLUS;}
 "-"             {return MINUS;}
 "*"             {return TIMES;}
 "/"             {return OVER;}
+"<"             {return LT;}
+"<="            {return LTEQ;}
+">"             {return GT;}
+"<="            {return GTEQ;}
+"=="            {return EQ;}
+"!="            {return NE;}
+"="             {return ASSIGN;}
+";"             {return SEMI;}
+","             {return COMMA;}
 "("             {return LPAREN;}
 ")"             {return RPAREN;}
-";"             {return SEMI;}
+"{"             {return LBRACE;}
+"}"             {return RBRACE;}
+"["             {return LBRACK;}
+"]"             {return RBRACK;}
 {number}        {return NUM;}
 {identifier}    {return ID;}
 {newline}       {lineno++;}
 {whitespace}    {/* skip whitespace */}
-"{"             { char c;
-                  do
-                  { c = input();
-                    if (c == EOF) break;
-                    if (c == '\n') lineno++;
-                  } while (c != '}');
-                }
 .               {return ERROR;}
 
 %%

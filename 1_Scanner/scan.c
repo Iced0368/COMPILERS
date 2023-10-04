@@ -11,8 +11,11 @@
 
 /* states in scanner DFA */
 typedef enum
-   { START,INASSIGN,INCOMMENT,INNUM,INID,DONE }
-   StateType;
+  { 
+    START,INNUM,INID,DONE,INCOMOVER,INCOMMENT,OUTCOMMENT,
+    INLT, INGT, INASSIGNEQ, INNE,
+  }
+  StateType;
 
 /* lexeme of identifier or reserved word */
 char tokenString[MAXTOKENLEN+1];
@@ -56,17 +59,16 @@ static struct
     { char* str;
       TokenType tok;
     } reservedWords[MAXRESERVED]
-   = {{"if",IF},{"then",THEN},{"else",ELSE},{"end",END},
-      {"repeat",REPEAT},{"until",UNTIL},{"read",READ},
-      {"write",WRITE}};
+   = {{"if",IF},{"else",ELSE},{"int",INT},{"void", VOID},{"while", WHILE},{"return", RETURN}}; 
 
 /* lookup an identifier to see if it is a reserved word */
 /* uses linear search */
 static TokenType reservedLookup (char * s)
 { int i;
-  for (i=0;i<MAXRESERVED;i++)
+  for (i=0;i<MAXRESERVED;i++){
     if (!strcmp(s,reservedWords[i].str))
       return reservedWords[i].tok;
+  }
   return ID;
 }
 
@@ -87,73 +89,151 @@ TokenType getToken(void)
    int save;
    while (state != DONE)
    { int c = getNextChar();
+      //printf("c='%c', tokenStringIndex=%d, state=%d -> ", c, tokenStringIndex, state);
      save = TRUE;
      switch (state)
      { case START:
-         if (isdigit(c))
-           state = INNUM;
-         else if (isalpha(c))
-           state = INID;
-         else if (c == ':')
-           state = INASSIGN;
-         else if ((c == ' ') || (c == '\t') || (c == '\n'))
-           save = FALSE;
-         else if (c == '{')
-         { save = FALSE;
-           state = INCOMMENT;
-         }
-         else
-         { state = DONE;
-           switch (c)
-           { case EOF:
-               save = FALSE;
-               currentToken = ENDFILE;
-               break;
-             case '=':
-               currentToken = EQ;
-               break;
-             case '<':
-               currentToken = LT;
-               break;
-             case '+':
-               currentToken = PLUS;
-               break;
-             case '-':
-               currentToken = MINUS;
-               break;
-             case '*':
-               currentToken = TIMES;
-               break;
-             case '/':
-               currentToken = OVER;
-               break;
-             case '(':
-               currentToken = LPAREN;
-               break;
-             case ')':
-               currentToken = RPAREN;
-               break;
-             case ';':
-               currentToken = SEMI;
-               break;
-             default:
-               currentToken = ERROR;
-               break;
-           }
-         }
-         break;
-       case INCOMMENT:
-         save = FALSE;
-         if (c == EOF)
-         { state = DONE;
-           currentToken = ENDFILE;
-         }
-         else if (c == '}') state = START;
-         break;
-       case INASSIGN:
+        if (isdigit(c))
+          state = INNUM;
+        else if (isalpha(c))
+          state = INID; 
+        else if (c == '/') {
+          save = FALSE;
+          state = INCOMOVER;
+        }
+        else if (c == '<')
+          state = INLT;
+        else if (c == '>')
+          state = INGT;
+        else if (c == '=')
+          state = INASSIGNEQ;
+        else if (c == '!')
+          state = INNE;
+        else if ((c == ' ') || (c == '\t') || (c == '\n'))
+          save = FALSE;
+        else
+        { state = DONE;
+          switch (c)
+          { 
+          case EOF:
+              save = FALSE;
+              currentToken = ENDFILE;
+              break;
+          case '+':
+            currentToken = PLUS;
+            break;
+          case '-':
+            currentToken = MINUS;
+            break;
+          case '*':
+            currentToken = TIMES;
+            break;
+          case ';':
+            currentToken = SEMI;
+            break;
+          case ',':
+            currentToken = COMMA;
+            break;
+          case '(':
+            currentToken = LPAREN;
+            break;
+          case ')':
+            currentToken = RPAREN;
+            break;
+          case '{':
+            currentToken = LBRACE;
+            break;
+          case '}':
+            currentToken = RBRACE;
+            break;
+          case '[':
+            currentToken = LBRACK;
+            break;
+          case ']':
+            currentToken = RBRACK;
+            break;
+          default:
+            currentToken = ERROR;
+            break;
+          }
+        }
+        break;
+      case INCOMOVER:
+        if (c == EOF)
+        { state = DONE;
+          currentToken = ENDFILE;
+        }
+        if (c == '*') {
+          save = FALSE;
+          state = INCOMMENT;
+        }
+        else
+        { ungetNextChar();
+          state = DONE;
+          currentToken = OVER;
+        }
+        break;
+      case INCOMMENT:
+        save = FALSE;
+        if (c == EOF)
+        { state = DONE;
+          currentToken = ENDFILE;
+        }
+        else if (c == '*')
+        { state = OUTCOMMENT;
+        }
+        break;
+      case OUTCOMMENT:
+        if (c == EOF)
+        { state = DONE;
+          currentToken = ENDFILE;
+        }
+        else if (c == '/')
+        { save = FALSE;
+          state = START;
+        }
+        else
+        { save = FALSE;
+          state = INCOMMENT;
+        }
+        break;
+      case INASSIGNEQ:
+        state = DONE;
+        if (c == '=')
+          currentToken = EQ;
+        else
+        { /* backup in the input */
+          ungetNextChar();
+          save = FALSE;
+          currentToken = ASSIGN;
+        }
+        break;
+      case INLT:
+        if (c == '=')
+          currentToken = LTEQ;
+        else
+        { /* backup in the input */
+          ungetNextChar();
+          save = FALSE;
+          state = DONE;
+          currentToken = LT;
+        }
+        break;
+      case INGT:
+        if (c == '=')
+          currentToken = GTEQ;
+        else
+        { /* backup in the input */
+          ungetNextChar();
+          save = FALSE;
+          state = DONE;
+          currentToken = GT;
+        }
+        break;
+      case INNE:
          state = DONE;
          if (c == '=')
-           currentToken = ASSIGN;
+           currentToken = NE;
          else
          { /* backup in the input */
            ungetNextChar();
@@ -161,43 +241,44 @@ TokenType getToken(void)
            currentToken = ERROR;
          }
          break;
-       case INNUM:
-         if (!isdigit(c))
-         { /* backup in the input */
-           ungetNextChar();
-           save = FALSE;
-           state = DONE;
-           currentToken = NUM;
-         }
-         break;
-       case INID:
-         if (!isalpha(c))
-         { /* backup in the input */
-           ungetNextChar();
-           save = FALSE;
-           state = DONE;
-           currentToken = ID;
-         }
-         break;
-       case DONE:
-       default: /* should never happen */
-         fprintf(listing,"Scanner Bug: state= %d\n",state);
-         state = DONE;
-         currentToken = ERROR;
-         break;
-     }
-     if ((save) && (tokenStringIndex <= MAXTOKENLEN))
-       tokenString[tokenStringIndex++] = (char) c;
-     if (state == DONE)
-     { tokenString[tokenStringIndex] = '\0';
-       if (currentToken == ID)
-         currentToken = reservedLookup(tokenString);
-     }
-   }
-   if (TraceScan) {
-     fprintf(listing,"\t%d: ",lineno);
-     printToken(currentToken,tokenString);
-   }
-   return currentToken;
+      case INNUM:
+        if (!isdigit(c))
+        { /* backup in the input */
+          ungetNextChar();
+          save = FALSE;
+          state = DONE;
+          currentToken = NUM;
+        }
+        break;
+      case INID:
+        if (!isalpha(c))
+        { /* backup in the input */
+          ungetNextChar();
+          save = FALSE;
+          state = DONE;
+          currentToken = ID;
+        }
+        break;
+      case DONE:
+      default: /* should never happen */
+        fprintf(listing,"Scanner Bug: state= %d\n",state);
+        state = DONE;
+        currentToken = ERROR;
+        break;
+    }
+    //printf("%d\n", state);
+    if ((save) && (tokenStringIndex <= MAXTOKENLEN))
+      tokenString[tokenStringIndex++] = (char) c;
+    if (state == DONE)
+    { tokenString[tokenStringIndex] = '\0';
+      if (currentToken == ID)
+        currentToken = reservedLookup(tokenString);
+    }
+  }
+  if (TraceScan) {
+    fprintf(listing,"\t%d: ",lineno);
+    printToken(currentToken,tokenString);
+  }
+  return currentToken;
 } /* end getToken */
 
