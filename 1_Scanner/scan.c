@@ -109,7 +109,7 @@ TokenType getToken(void)
           state = INASSIGNEQ;
         else if (c == '!')
           state = INNE;
-        else if ((c == ' ') || (c == '\t') || (c == '\n'))
+        else if ((c == ' ') || (c == '\t') || (c == '\n') || (c == '\r'))
           save = FALSE;
         else
         { state = DONE;
