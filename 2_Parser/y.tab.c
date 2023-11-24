@@ -664,10 +664,10 @@ static const yytype_int16 yyrline[] =
        0,    33,    33,    35,    46,    48,    49,    51,    59,    71,
       72,    74,    89,    90,    96,   107,   109,   117,   128,   135,
      146,   148,   159,   161,   162,   163,   164,   165,   167,   175,
-     182,   183,   185,   190,   195,   201,   207,   209,   217,   228,
-     235,   237,   238,   239,   240,   241,   242,   244,   255,   256,
-     257,   259,   270,   272,   273,   275,   276,   277,   278,   280,
-     285,   286,   288,   299,   301,   308,   315
+     182,   183,   185,   192,   197,   203,   209,   211,   219,   230,
+     237,   239,   240,   241,   242,   243,   244,   246,   253,   254,
+     255,   257,   264,   266,   267,   269,   270,   271,   272,   274,
+     282,   283,   285,   296,   298,   305,   312
 };
 #endif
 
@@ -1576,47 +1576,49 @@ yyreduce:
   case 32: /* iteration_stmt: WHILE LPAREN expression RPAREN statement  */
 #line 186 "cminus.y"
                          { 
-							
+						yyval = newTreeNode(WhileStmt);
+                              yyval->child[0] = yyvsp[-2];
+                              yyval->child[1] = yyvsp[0];
                          }
-#line 1582 "y.tab.c"
+#line 1584 "y.tab.c"
     break;
 
   case 33: /* return_stmt: RETURN SEMI  */
-#line 191 "cminus.y"
-                                                { 
-							yyval = newTreeNode(ReturnStmt);
-                                   yyval->flag = TRUE;
-						}
-#line 1591 "y.tab.c"
+#line 193 "cminus.y"
+                         { 
+                              yyval = newTreeNode(ReturnStmt);
+                              yyval->flag = TRUE;
+                         }
+#line 1593 "y.tab.c"
     break;
 
   case 34: /* return_stmt: RETURN expression SEMI  */
-#line 196 "cminus.y"
+#line 198 "cminus.y"
                          { 
                               yyval = newTreeNode(ReturnStmt);
                               yyval->child[0] = yyvsp[-1];
                          }
-#line 1600 "y.tab.c"
+#line 1602 "y.tab.c"
     break;
 
   case 35: /* expression: var ASSIGN expression  */
-#line 202 "cminus.y"
+#line 204 "cminus.y"
                          { 
                               yyval = newTreeNode(AssignExpr);
                               yyval->child[0] = yyvsp[-2];
                               yyval->child[1] = yyvsp[0];
                          }
-#line 1610 "y.tab.c"
+#line 1612 "y.tab.c"
     break;
 
   case 36: /* expression: simple_expression  */
-#line 207 "cminus.y"
+#line 209 "cminus.y"
                                         { yyval = yyvsp[0]; }
-#line 1616 "y.tab.c"
+#line 1618 "y.tab.c"
     break;
 
   case 37: /* var: identifier  */
-#line 210 "cminus.y"
+#line 212 "cminus.y"
                          { 
 						yyval = newTreeNode(VarAccessExpr);
                               yyval->lineno = yyvsp[0]->lineno;
@@ -1624,11 +1626,11 @@ yyreduce:
                               yyval->name = yyvsp[0]->name;
                               free(yyvsp[0]);
                          }
-#line 1628 "y.tab.c"
+#line 1630 "y.tab.c"
     break;
 
   case 38: /* var: identifier LBRACE expression RBRACE  */
-#line 218 "cminus.y"
+#line 220 "cminus.y"
                          {
 						yyval = newTreeNode(VarAccessExpr);
                               yyval->lineno = yyvsp[-3]->lineno;
@@ -1638,174 +1640,169 @@ yyreduce:
                               yyval->child[0] = yyvsp[-1];
                               free(yyvsp[-3]);
                          }
-#line 1642 "y.tab.c"
+#line 1644 "y.tab.c"
     break;
 
   case 39: /* simple_expression: additive_expression relop additive_expression  */
-#line 229 "cminus.y"
+#line 231 "cminus.y"
                          { 
 						yyval = newTreeNode(BinOpExpr);
                               yyval->opcode = yyvsp[-1]->opcode;
                               yyval->child[0] = yyvsp[-2];
                               yyval->child[1] = yyvsp[0];
                          }
-#line 1653 "y.tab.c"
+#line 1655 "y.tab.c"
     break;
 
   case 40: /* simple_expression: additive_expression  */
-#line 235 "cminus.y"
+#line 237 "cminus.y"
                                           { yyval = yyvsp[0]; }
-#line 1659 "y.tab.c"
+#line 1661 "y.tab.c"
     break;
 
   case 41: /* relop: LE  */
-#line 237 "cminus.y"
+#line 239 "cminus.y"
                          { yyval = newTreeNode(Opcode); yyval->lineno = lineno; yyval->opcode = LE; }
-#line 1665 "y.tab.c"
+#line 1667 "y.tab.c"
     break;
 
   case 42: /* relop: LT  */
-#line 238 "cminus.y"
+#line 240 "cminus.y"
                          { yyval = newTreeNode(Opcode); yyval->lineno = lineno; yyval->opcode = LT; }
-#line 1671 "y.tab.c"
+#line 1673 "y.tab.c"
     break;
 
   case 43: /* relop: GT  */
-#line 239 "cminus.y"
+#line 241 "cminus.y"
                          { yyval = newTreeNode(Opcode); yyval->lineno = lineno; yyval->opcode = GT; }
-#line 1677 "y.tab.c"
+#line 1679 "y.tab.c"
     break;
 
   case 44: /* relop: GE  */
-#line 240 "cminus.y"
+#line 242 "cminus.y"
                          { yyval = newTreeNode(Opcode); yyval->lineno = lineno; yyval->opcode = GE; }
-#line 1683 "y.tab.c"
+#line 1685 "y.tab.c"
     break;
 
   case 45: /* relop: EQ  */
-#line 241 "cminus.y"
+#line 243 "cminus.y"
                          { yyval = newTreeNode(Opcode); yyval->lineno = lineno; yyval->opcode = EQ; }
-#line 1689 "y.tab.c"
+#line 1691 "y.tab.c"
     break;
 
   case 46: /* relop: NE  */
-#line 242 "cminus.y"
+#line 244 "cminus.y"
                          { yyval = newTreeNode(Opcode); yyval->lineno = lineno; yyval->opcode = NE; }
-#line 1695 "y.tab.c"
+#line 1697 "y.tab.c"
     break;
 
   case 47: /* additive_expression: additive_expression addop term  */
-#line 245 "cminus.y"
+#line 247 "cminus.y"
                          { 
-						YYSTYPE t = yyvsp[-2]; 
-                              if (t != NULL)
-                              {
-                                   while (t->sibling != NULL) t = t->sibling;
-                                   t->sibling = yyvsp[-1]; 
-                                   yyval = yyvsp[-2]; 
-                              } 
-                              else yyval = yyvsp[-1];
+						yyval = newTreeNode(BinOpExpr);
+                              yyval->opcode = yyvsp[-1]->opcode;
+                              yyval->child[0] = yyvsp[-2];
+                              yyval->child[1] = yyvsp[0];
                          }
-#line 1710 "y.tab.c"
+#line 1708 "y.tab.c"
     break;
 
   case 48: /* additive_expression: term  */
-#line 255 "cminus.y"
-                                               { yyval = yyvsp[0]; }
-#line 1716 "y.tab.c"
+#line 253 "cminus.y"
+                           { yyval = yyvsp[0]; }
+#line 1714 "y.tab.c"
     break;
 
   case 49: /* addop: PLUS  */
-#line 256 "cminus.y"
+#line 254 "cminus.y"
                                         { yyval = newTreeNode(Opcode); yyval->lineno = lineno; yyval->opcode = PLUS; }
-#line 1722 "y.tab.c"
+#line 1720 "y.tab.c"
     break;
 
   case 50: /* addop: MINUS  */
-#line 257 "cminus.y"
-                                                { yyval = newTreeNode(Opcode); yyval->lineno = lineno; yyval->opcode = MINUS; }
-#line 1728 "y.tab.c"
+#line 255 "cminus.y"
+                            { yyval = newTreeNode(Opcode); yyval->lineno = lineno; yyval->opcode = MINUS; }
+#line 1726 "y.tab.c"
     break;
 
   case 51: /* term: term mulop factor  */
-#line 260 "cminus.y"
-                                                {
-							YYSTYPE t = yyvsp[-2]; 
-                                   if (t != NULL)
-                                   {
-                                        while (t->sibling != NULL) t = t->sibling;
-                                        t->sibling = yyvsp[-1]; 
-                                        yyval = yyvsp[-2]; 
-                                   } 
-                                   else yyval = yyvsp[-1];
-						}
-#line 1743 "y.tab.c"
+#line 258 "cminus.y"
+                         {
+                              yyval = newTreeNode(BinOpExpr);
+                              yyval->opcode = yyvsp[-1]->opcode;
+                              yyval->child[0] = yyvsp[-2];
+                              yyval->child[1] = yyvsp[0];
+                         }
+#line 1737 "y.tab.c"
     break;
 
   case 52: /* term: factor  */
-#line 270 "cminus.y"
-                                                 { yyval = yyvsp[0]; }
-#line 1749 "y.tab.c"
+#line 264 "cminus.y"
+                             { yyval = yyvsp[0]; }
+#line 1743 "y.tab.c"
     break;
 
   case 53: /* mulop: TIMES  */
-#line 272 "cminus.y"
-                            {  }
-#line 1755 "y.tab.c"
+#line 266 "cminus.y"
+                            { yyval = newTreeNode(Opcode); yyval->lineno = lineno; yyval->opcode = TIMES; }
+#line 1749 "y.tab.c"
     break;
 
   case 54: /* mulop: OVER  */
-#line 273 "cminus.y"
-                                                {  }
-#line 1761 "y.tab.c"
+#line 267 "cminus.y"
+                            { yyval = newTreeNode(Opcode); yyval->lineno = lineno; yyval->opcode = OVER; }
+#line 1755 "y.tab.c"
     break;
 
   case 55: /* factor: LPAREN expression RPAREN  */
-#line 275 "cminus.y"
+#line 269 "cminus.y"
                                                {  }
-#line 1767 "y.tab.c"
+#line 1761 "y.tab.c"
     break;
 
   case 56: /* factor: var  */
-#line 276 "cminus.y"
-                          {  }
-#line 1773 "y.tab.c"
+#line 270 "cminus.y"
+                          { yyval = yyvsp[0]; }
+#line 1767 "y.tab.c"
     break;
 
   case 57: /* factor: call  */
-#line 277 "cminus.y"
-                           {  }
-#line 1779 "y.tab.c"
+#line 271 "cminus.y"
+                           { yyval = yyvsp[0]; }
+#line 1773 "y.tab.c"
     break;
 
   case 58: /* factor: number  */
-#line 278 "cminus.y"
-                             {  }
-#line 1785 "y.tab.c"
+#line 272 "cminus.y"
+                             { yyval = yyvsp[0]; }
+#line 1779 "y.tab.c"
     break;
 
   case 59: /* call: identifier LPAREN args RPAREN  */
-#line 281 "cminus.y"
+#line 275 "cminus.y"
                          { 
-							
+						yyval = newTreeNode(CallExpr);
+                              yyval->name = yyvsp[-3]->name;
+                              yyval->child[0] = yyvsp[-1];
+                              free(yyvsp[-3]);
                          }
-#line 1793 "y.tab.c"
+#line 1790 "y.tab.c"
     break;
 
   case 60: /* args: arg_list  */
-#line 285 "cminus.y"
-                               {  }
-#line 1799 "y.tab.c"
+#line 282 "cminus.y"
+                               { yyval = yyvsp[0]; }
+#line 1796 "y.tab.c"
     break;
 
   case 61: /* args: empty  */
-#line 286 "cminus.y"
-                            {  }
-#line 1805 "y.tab.c"
+#line 283 "cminus.y"
+                            { yyval = yyvsp[0]; }
+#line 1802 "y.tab.c"
     break;
 
   case 62: /* arg_list: arg_list COMMA expression  */
-#line 289 "cminus.y"
+#line 286 "cminus.y"
                          {
 							YYSTYPE t = yyvsp[-2]; 
 							if (t != NULL)
@@ -1816,43 +1813,43 @@ yyreduce:
 							} 
 							else yyval = yyvsp[0];
                          }
-#line 1820 "y.tab.c"
+#line 1817 "y.tab.c"
     break;
 
   case 63: /* arg_list: expression  */
-#line 299 "cminus.y"
+#line 296 "cminus.y"
                                  { yyval = yyvsp[0]; }
-#line 1826 "y.tab.c"
+#line 1823 "y.tab.c"
     break;
 
   case 64: /* identifier: ID  */
-#line 302 "cminus.y"
-                                                {
-							yyval = newTreeNode(Indentifier);
-							yyval->lineno = lineno;
-							yyval->name = copyString(tokenString);
-						}
-#line 1836 "y.tab.c"
+#line 299 "cminus.y"
+                         {
+                              yyval = newTreeNode(Indentifier);
+                              yyval->lineno = lineno;
+                              yyval->name = copyString(tokenString);
+                         }
+#line 1833 "y.tab.c"
     break;
 
   case 65: /* number: NUM  */
-#line 309 "cminus.y"
-                                                {
-							yyval = newTreeNode(ConstExpr);
-							yyval->lineno = lineno;
-							yyval->val = atoi(tokenString);
-						}
-#line 1846 "y.tab.c"
+#line 306 "cminus.y"
+                         {
+                              yyval = newTreeNode(ConstExpr);
+                              yyval->lineno = lineno;
+                              yyval->val = atoi(tokenString);
+                         }
+#line 1843 "y.tab.c"
     break;
 
   case 66: /* empty: %empty  */
-#line 315 "cminus.y"
+#line 312 "cminus.y"
                       { yyval = NULL;}
-#line 1852 "y.tab.c"
+#line 1849 "y.tab.c"
     break;
 
 
-#line 1856 "y.tab.c"
+#line 1853 "y.tab.c"
 
       default: break;
     }
@@ -2045,7 +2042,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 318 "cminus.y"
+#line 315 "cminus.y"
 
 
 int yyerror(char * message)

@@ -159,7 +159,7 @@ statement_list      : statement_list statement
                     | empty { $$ = $1; }
                     ;
 statement			: selection_stmt { $$ = $1; }
-					| expression_stmt { $$ = $1; }
+				| expression_stmt { $$ = $1; }
                     | compound_stmt { $$ = $1; }
                     | iteration_stmt { $$ = $1; }
                     | return_stmt { $$ = $1; }
@@ -184,14 +184,16 @@ expression_stmt     : expression SEMI { $$ = $1; }
                     ;
 iteration_stmt      : WHILE LPAREN expression RPAREN statement
                          { 
-							
+						$$ = newTreeNode(WhileStmt);
+                              $$->child[0] = $3;
+                              $$->child[1] = $5;
                          }
                     ;
 return_stmt         : RETURN SEMI 
-						{ 
-							$$ = newTreeNode(ReturnStmt);
-                                   $$->flag = TRUE;
-						}
+                         { 
+                              $$ = newTreeNode(ReturnStmt);
+                              $$->flag = TRUE;
+                         }
                     | RETURN expression SEMI
                          { 
                               $$ = newTreeNode(ReturnStmt);
@@ -243,47 +245,42 @@ relop               : LE { $$ = newTreeNode(Opcode); $$->lineno = lineno; $$->op
                     ;
 additive_expression : additive_expression addop term
                          { 
-						YYSTYPE t = $1; 
-                              if (t != NULL)
-                              {
-                                   while (t->sibling != NULL) t = t->sibling;
-                                   t->sibling = $2; 
-                                   $$ = $1; 
-                              } 
-                              else $$ = $2;
+						$$ = newTreeNode(BinOpExpr);
+                              $$->opcode = $2->opcode;
+                              $$->child[0] = $1;
+                              $$->child[1] = $3;
                          }
-					| term { $$ = $1; }
+                    | term { $$ = $1; }
 addop				: PLUS  { $$ = newTreeNode(Opcode); $$->lineno = lineno; $$->opcode = PLUS; }
-					| MINUS { $$ = newTreeNode(Opcode); $$->lineno = lineno; $$->opcode = MINUS; }
-					;
+                    | MINUS { $$ = newTreeNode(Opcode); $$->lineno = lineno; $$->opcode = MINUS; }
+                    ;
 term                : term mulop factor
-						{
-							YYSTYPE t = $1; 
-                                   if (t != NULL)
-                                   {
-                                        while (t->sibling != NULL) t = t->sibling;
-                                        t->sibling = $2; 
-                                        $$ = $1; 
-                                   } 
-                                   else $$ = $2;
-						}
-					| factor { $$ = $1; }
-					;
-mulop               : TIMES {  }
-					| OVER  {  }
-					;
+                         {
+                              $$ = newTreeNode(BinOpExpr);
+                              $$->opcode = $2->opcode;
+                              $$->child[0] = $1;
+                              $$->child[1] = $3;
+                         }
+                    | factor { $$ = $1; }
+                    ;
+mulop               : TIMES { $$ = newTreeNode(Opcode); $$->lineno = lineno; $$->opcode = TIMES; }
+                    | OVER  { $$ = newTreeNode(Opcode); $$->lineno = lineno; $$->opcode = OVER; }
+                    ;
 factor              : LPAREN expression RPAREN {  }
-                    | var {  }
-                    | call {  }
-                    | number {  }
+                    | var { $$ = $1; }
+                    | call { $$ = $1; }
+                    | number { $$ = $1; }
                     ;
 call                : identifier LPAREN args RPAREN
                          { 
-							
+						$$ = newTreeNode(CallExpr);
+                              $$->name = $1->name;
+                              $$->child[0] = $3;
+                              free($1);
                          }
                     ;
-args                : arg_list {  }
-                    | empty {  }
+args                : arg_list { $$ = $1; }
+                    | empty { $$ = $1; }
                     ;
 arg_list            : arg_list COMMA expression
                          {
@@ -298,20 +295,20 @@ arg_list            : arg_list COMMA expression
                          }
                     | expression { $$ = $1; }
                     ;
-identifier			: ID
-						{
-							$$ = newTreeNode(Indentifier);
-							$$->lineno = lineno;
-							$$->name = copyString(tokenString);
-						}
-					;
-number				: NUM
-						{
-							$$ = newTreeNode(ConstExpr);
-							$$->lineno = lineno;
-							$$->val = atoi(tokenString);
-						}
-					;
+identifier		: ID
+                         {
+                              $$ = newTreeNode(Indentifier);
+                              $$->lineno = lineno;
+                              $$->name = copyString(tokenString);
+                         }
+                    ;
+number			: NUM
+                         {
+                              $$ = newTreeNode(ConstExpr);
+                              $$->lineno = lineno;
+                              $$->val = atoi(tokenString);
+                         }
+                    ;
 empty               : { $$ = NULL;}
                     ;
 
